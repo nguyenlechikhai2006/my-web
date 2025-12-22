@@ -1,31 +1,17 @@
 const mongoose = require('mongoose');
-const { Schema, model } = require("mongoose");
+const { Schema } = mongoose;
 
-const OrderItemSchema = new Schema({
-  productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+const ProductSchema = new Schema({
   title: { type: String, required: true },
+  description: { type: String },
   price: { type: Number, required: true },
-  quantity: { type: Number, required: true },
   image: { type: String },
-  // THÊM 2 DÒNG NÀY ĐỂ LƯU SIZE VÀ VỊ VÀO COMPASS
-  selectedSize: { type: String, default: "Default" },
-  selectedFlavor: { type: String, default: "Default" }
-}, { _id: false });
-
-const OrderSchema = new Schema({
-  orderCode: { type: String, required: true, unique: true },
-  customerName: { type: String, required: true },
-  customerPhone: { type: String, required: true },
-  customerAddress: { type: String, required: true },
-  paymentMethod: { type: String, enum: ["cod", "banking", "momo"], required: true },
-  note: { type: String },
-  items: [OrderItemSchema], // Danh sách quà tặng Noel
-  subtotal: { type: Number, required: true },
-  shippingFee: { type: Number, default: 0 },
-  total: { type: Number, required: true },
-  status: { type: String, default: "pending" }
+  category: { type: String },
+  stock: { type: Number, default: 0 },
+  // Thêm các trường khác của sản phẩm nếu bạn cần
 }, { timestamps: true });
 
-// Sửa dòng tạo model
+// Kiểm tra và khởi tạo model
 const Product = mongoose.models.Product || mongoose.model("Product", ProductSchema);
+
 module.exports = { Product };
