@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { Schema, model, Types } = require("mongoose");
 
 const OrderItemSchema = new Schema(
