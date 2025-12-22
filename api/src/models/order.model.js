@@ -34,5 +34,6 @@ OrderSchema.set("toJSON", {
   transform: (_doc, ret) => { ret.id = ret._id; return ret; },
 });
 
-const Order = model("Order", OrderSchema);
+// Kiểm tra xem model đã tồn tại chưa, nếu chưa mới khởi tạo
+const Order = mongoose.models.Order || mongoose.model("Order", OrderSchema);
 module.exports = { Order };
