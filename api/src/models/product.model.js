@@ -25,5 +25,6 @@ const OrderSchema = new Schema({
   status: { type: String, default: "pending" }
 }, { timestamps: true });
 
-const Order = model("Order", OrderSchema);
-module.exports = { Order };
+// Sửa dòng tạo model
+const Product = mongoose.models.Product || mongoose.model("Product", ProductSchema);
+module.exports = { Product };

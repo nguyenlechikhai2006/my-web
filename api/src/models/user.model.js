@@ -19,5 +19,6 @@ UserSchema.set("toJSON", {
   },
 });
 
-const User = model("User", UserSchema);
+// Sửa dòng tạo model
+const User = mongoose.models.User || mongoose.model("User", UserSchema);
 module.exports = { User };
