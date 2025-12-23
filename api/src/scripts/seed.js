@@ -100,31 +100,37 @@ async function run() {
   try {
     await connectMongo();
     
-    // BƯỚC 1: XÓA SẠCH DỮ LIỆU CŨ ĐỂ KHÔNG BỊ XUNG ĐỘT
-    await Product.deleteMany({});
-    console.log("--- Đã xóa sạch dữ liệu cũ trong MongoDB ---");
+    // BƯỚC 1: KHÔNG XÓA NỮA - Chỉ kiểm tra và thêm mới
+    console.log("--- Đang kiểm tra dữ liệu sản phẩm ---");
 
-    // BƯỚC 2: CHẾ BIẾN DỮ LIỆU CHO KHỚP SCHEMA MỚI
-    const processedDocs = RAW_PRODUCTS.map(p => {
-      const flavors = p.category === 'phu-kien' ? [] : ["Vị Truyền Thống", "Vị Bò Nướng", "Vị Gà Quay", "Vị Cừu & Gạo"];
-      const sizes = p.sub === 'hat' 
-        ? [{ label: "400g", extra: 0 }, { label: "1.5kg", extra: 45000 }, { label: "3kg", extra: 125000 }] 
-        : [{ label: "1 Gói/Cái", extra: 0 }, { label: "Combo Tiết Kiệm", extra: 100000 }];
+    for (const p of RAW_PRODUCTS) {
+      const slug = createSlug(p.title);
+      
+      // Kiểm tra xem sản phẩm này đã tồn tại chưa dựa trên slug
+      const existing = await Product.findOne({ slug });
+      
+      if (!existing) {
+        // Nếu chưa có thì mới chế biến và thêm vào
+        const flavors = p.category === 'phu-kien' ? [] : ["Vị Truyền Thống", "Vị Bò Nướng", "Vị Gà Quay"];
+        const sizes = p.sub === 'hat' 
+          ? [{ label: "400g", extra: 0 }, { label: "1.5kg", extra: 45000 }] 
+          : [{ label: "Tiêu chuẩn", extra: 0 }];
 
-      return {
-        ...p,
-        slug: createSlug(p.title),
-        images: [p.image], // Chuyển image đơn lẻ thành mảng images
-        flavors: flavors,
-        sizes: sizes,
-        description: getDetailDescription(p)
-      };
-    });
+        await Product.create({
+          ...p,
+          slug: slug,
+          images: [p.image],
+          flavors: flavors,
+          sizes: sizes,
+          description: getDetailDescription(p)
+        });
+        console.log(`+ Đã thêm mới: ${p.title}`);
+      } else {
+        console.log(`- Bỏ qua (Đã tồn tại): ${p.title}`);
+      }
+    }
 
-    // BƯỚC 3: ĐẨY LÊN DATABASE
-    await Product.insertMany(processedDocs);
-    console.log(`--- SEED THÀNH CÔNG: Đã nạp ${processedDocs.length} sản phẩm của bạn vào DB! ---`);
-    
+    console.log(`--- HOÀN TẤT KIỂM TRA DỮ LIỆU ---`);
     process.exit(0);
   } catch (e) {
     console.error("Lỗi khi seed dữ liệu:", e);

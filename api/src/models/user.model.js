@@ -1,25 +1,31 @@
-const mongoose = require('mongoose');
-const { Schema, model } = require("mongoose");
+const bcrypt = require('bcrypt');
+const { User } = require('./models/User'); // File Mongoose bạn vừa gửi
+const { registerSchema } = require('./schemas/zod'); // File Zod trước đó
 
-const UserSchema = new Schema(
-  {
-    name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, index: true },
-    passwordHash: { type: String, required: true },
-    role: { type: String, enum: ["user", "admin"], default: "user", index: true },
-  },
-  { timestamps: true, versionKey: false }
-);
+const registerUser = async (req, res) => {
+  try {
+    // 1. Validate bằng Zod
+    const validatedData = registerSchema.parse(req.body);
 
-UserSchema.set("toJSON", {
-  virtuals: true,
-  transform: (_doc, ret) => {
-    ret.id = ret._id;
-    delete ret.passwordHash; // không lộ hash
-    return ret;
-  },
-});
+    // 2. Kiểm tra email tồn tại chưa
+    const existingUser = await User.findOne({ email: validatedData.email });
+    if (existingUser) return res.status(400).json({ message: "Email đã được dùng" });
 
-// Sửa dòng tạo model
-const User = mongoose.models.User || mongoose.model("User", UserSchema);
-module.exports = { User };
+    // 3. Hash mật khẩu (Sử dụng bcrypt)
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(validatedData.password, saltRounds);
+
+    // 4. Lưu vào MongoDB qua Mongoose
+    const newUser = new User({
+      name: validatedData.name,
+      email: validatedData.email,
+      passwordHash: hashedPassword, // Lưu cái đã băm vào trường passwordHash
+    });
+
+    await newUser.save();
+    res.status(201).json(newUser); // JSON trả về sẽ tự động mất passwordHash nhờ vào transform của bạn
+    
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
