@@ -1,5 +1,4 @@
 const bcrypt = require('bcrypt');
-// Thêm vào trước dòng const User = ...
 UserSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.passwordHash);
 };
