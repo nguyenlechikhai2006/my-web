@@ -1,4 +1,8 @@
 const bcrypt = require('bcrypt');
+// Thêm vào trước dòng const User = ...
+UserSchema.methods.comparePassword = async function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.passwordHash);
+};
 const { User } = require('./models/User'); // File Mongoose bạn vừa gửi
 const { registerSchema } = require('./schemas/zod'); // File Zod trước đó
 
