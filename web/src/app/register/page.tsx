@@ -21,17 +21,38 @@ export default function RegisterPage() {
 
   async function onSubmit(values: RegisterValues) {
     setServerMsg(null);
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
-    if (!res.ok) {
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+
       const data = await res.json();
-      setServerMsg(data?.message ?? "Đăng ký thất bại");
-      return;
+
+      if (!res.ok) {
+        setServerMsg(data?.message ?? "Đăng ký thất bại");
+        return;
+      }
+
+      // TỰ ĐỘNG ĐĂNG NHẬP SAU KHI ĐĂNG KÝ THÀNH CÔNG
+      if (data.user && data.user.name) {
+        // 1. Lưu tên người dùng mới vào máy
+        localStorage.setItem("userName", data.user.name);
+        
+        // 2. Phát tín hiệu để SiteHeader hiển thị tên ngay
+        window.dispatchEvent(new Event("userLogin")); 
+        
+        setServerMsg(`Chúc mừng ${data.user.name}! Bạn đã nhận được thẻ thành viên Giáng Sinh! 🎄`);
+
+        // 3. Chuyển hướng về trang chủ sau khi người dùng kịp đọc thông báo
+        setTimeout(() => {
+          window.location.href = "/"; // Dùng window.location để cưỡng bức reload trang chủ
+        }, 1500);
+      }
+    } catch (error) {
+      setServerMsg("Lỗi kết nối đến Server");
     }
-    setServerMsg("Chúc mừng! Bạn đã nhận được thẻ thành viên Giáng Sinh của Keddy Pet! 🎄");
   }
 
   const pwd = watch("password");

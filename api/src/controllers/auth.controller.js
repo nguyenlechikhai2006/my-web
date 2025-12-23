@@ -8,6 +8,7 @@ async function register(req, res, next) {
     if (exists) return res.status(409).json({ ok: false, error: { code: "EMAIL_EXISTS", message: "Email already registered" } });
     const passwordHash = await hashPassword(password);
     const user = await User.create({ name, email, passwordHash, role: "user" });
+    console.log("==> Đã lưu người dùng mới vào Mongoose:", user.email);
     const token = signToken(user);
     return res.status(201).json({ ok: true, token, user: user.toJSON() });
   } catch (err) {

@@ -5,9 +5,11 @@ import { loginSchema, type LoginValues } from "@/features/auth/schemas";
 import { useState } from "react";
 import { Snowflake, Gift, Bell, Star, Heart } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; 
 
 export default function LoginPage() {
   const [serverMsg, setServerMsg] = useState<string | null>(null);
+  const router = useRouter(); 
   
   const {
     register,
@@ -20,35 +22,49 @@ export default function LoginPage() {
 
   async function onSubmit(values: LoginValues) {
     setServerMsg(null);
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
-    if (!res.ok) {
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+
+      // CHỈ ĐỌC JSON MỘT LẦN DUY NHẤT Ở ĐÂY
       const data = await res.json();
-      setServerMsg(data?.message ?? "Đăng nhập thất bại");
-      return;
+
+      if (!res.ok) {
+        setServerMsg(data?.message ?? "Đăng nhập thất bại");
+        return;
+      }
+
+      // KIỂM TRA VÀ LƯU TÊN: data.user.name dành cho tài khoản bạn vừa đăng ký
+      if (data.user && data.user.name) {
+        localStorage.setItem("userName", data.user.name);
+        
+        // Đánh chuông báo hiệu cho SiteHeader cập nhật "Chào, aaa3"
+        window.dispatchEvent(new Event("userLogin")); 
+        
+        setServerMsg(`Chào mừng ${data.user.name} quay lại! 🎄`);
+      }
+
+      setTimeout(() => {
+        router.push("/");
+        router.refresh(); 
+      }, 800);
+      
+    } catch (error) {
+      setServerMsg("Lỗi kết nối đến Server");
     }
-    setServerMsg("Chào mừng bạn quay lại! 🎄");
   }
 
   return (
-    /**
-     * PHẦN QUAN TRỌNG NHẤT ĐỂ PHỦ ĐẦY:
-     * - w-full: Đảm bảo rộng 100% không có khoảng trắng.
-     * - bg-[#c41e3a]: Màu đỏ Noel bao phủ toàn bộ vùng nền.
-     * - min-h-[calc(100vh-140px)]: Chiều cao tối thiểu trừ đi Header để không bị hụt nền phía dưới.
-     */
     <main className="relative w-full min-h-[calc(100vh-140px)] flex items-center justify-center bg-[#4794EC] overflow-hidden">
       
-      {/* 1. LỚP TRANG TRÍ TRÀN VIỀN (Lấp đầy 2 bên) */}
+      {/* 1. LỚP TRANG TRÍ TRÀN VIỀN */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Họa tiết tuyết chìm phủ toàn màn hình */}
         <div className="absolute inset-0 opacity-20" 
              style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/snow.png')` }}></div>
         
-        {/* Các biểu tượng đặt sát mép màn hình để xóa bỏ cảm giác trống trải */}
         <Snowflake className="absolute top-[15%] left-[5%] animate-bounce text-white/40" size={48} />
         <Snowflake className="absolute top-[25%] right-[5%] animate-pulse text-white/30" size={56} />
         <Snowflake className="absolute bottom-[20%] left-[8%] animate-spin-slow text-white/20" size={32} />
@@ -57,17 +73,17 @@ export default function LoginPage() {
         <Heart className="absolute bottom-10 left-10 text-white/10 fill-white hidden lg:block" size={120} />
       </div>
 
-      {/* 2. FORM ĐĂNG NHẬP TRUNG TÂM (Theo mẫu ảnh bạn gửi) */}
-      <div className="relative z-10 w-full max-w-[420px] mx-4 my-10 animate-in fade-in zoom-in duration-500">
+      {/* 2. FORM ĐĂNG NHẬP TRUNG TÂM */}
+      {/* Thêm mx-auto để cưỡng bức căn giữa tuyệt đối */}
+      <div className="relative z-10 w-full max-w-[420px] mx-auto px-4 my-10 animate-in fade-in zoom-in duration-500">
         <div className="bg-white rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] overflow-hidden border-[10px] border-[#138713]">
           
-          {/* Header Xanh Thông */}
           <div className="bg-[#1a472a] p-8 text-center relative">
             <Gift className="absolute top-4 left-4 text-red-400 rotate-12" size={32} />
             <Bell className="absolute top-4 right-4 text-yellow-400 -rotate-12" size={32} />
             
             <h1 className="text-3xl font-black text-white uppercase tracking-normal leading-normal">
-              ĐĂNG NHẬP <br/> <span className="text-[#ff4d4d]"></span>
+              ĐĂNG NHẬP <br/> <span className="text-[#ff4d4d]">{serverMsg && " Keddy"}</span>
             </h1>
             <div className="h-1.5 w-16 bg-yellow-400 mx-auto mt-4 rounded-full"></div>
             <p className="text-white/70 text-[10px] mt-2 font-bold uppercase tracking-widest">Keddy Pet Shop</p>
@@ -95,6 +111,13 @@ export default function LoginPage() {
               />
               {errors.password && <p className="text-[10px] text-red-600 font-bold ml-2 italic">{errors.password.message}</p>}
             </div>
+
+            {/* Hiển thị thông báo server nếu có */}
+            {serverMsg && (
+              <p className={`text-center text-xs font-bold ${serverMsg.includes('thành công') || serverMsg.includes('Chào mừng') ? 'text-green-600' : 'text-red-600'}`}>
+                {serverMsg}
+              </p>
+            )}
 
             <button
               type="submit"

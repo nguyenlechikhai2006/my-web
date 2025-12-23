@@ -1,34 +1,19 @@
-const bcrypt = require('bcrypt');
-UserSchema.methods.comparePassword = async function (candidatePassword) {
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+
+// 1. Định nghĩa Schema (Lưu ý đặt tên biến là userSchema)
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  passwordHash: { type: String, required: true },
+  role: { type: String, default: "user" }
+}, { timestamps: true });
+
+// 2. Gán phương thức comparePassword vào userSchema
+// Lỗi nãy giờ là do bạn viết UserSchema (chữ U hoa) trong khi chưa khai báo nó
+userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.passwordHash);
 };
-const { User } = require('./models/User'); // File Mongoose bạn vừa gửi
-const { registerSchema } = require('./schemas/zod'); // File Zod trước đó
 
-const registerUser = async (req, res) => {
-  try {
-    // 1. Validate bằng Zod
-    const validatedData = registerSchema.parse(req.body);
-
-    // 2. Kiểm tra email tồn tại chưa
-    const existingUser = await User.findOne({ email: validatedData.email });
-    if (existingUser) return res.status(400).json({ message: "Email đã được dùng" });
-
-    // 3. Hash mật khẩu (Sử dụng bcrypt)
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(validatedData.password, saltRounds);
-
-    // 4. Lưu vào MongoDB qua Mongoose
-    const newUser = new User({
-      name: validatedData.name,
-      email: validatedData.email,
-      passwordHash: hashedPassword, // Lưu cái đã băm vào trường passwordHash
-    });
-
-    await newUser.save();
-    res.status(201).json(newUser); // JSON trả về sẽ tự động mất passwordHash nhờ vào transform của bạn
-    
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
+const User = mongoose.model("User", userSchema);
+module.exports = { User };
