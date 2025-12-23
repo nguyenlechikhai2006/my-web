@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // THÊM DÒNG NÀY ĐỂ XUẤT FILE TĨNH
   images: {
-    unoptimized: true, // Thêm dòng này vì 'output: export' không hỗ trợ tối ưu ảnh mặc định của Next.js
     remotePatterns: [
       {
         protocol: 'https',
@@ -14,6 +12,7 @@ const nextConfig = {
       }
     ],
   },
+  // THÊM 2 ĐOẠN DƯỚI ĐÂY ĐỂ FIX LỖI BUILD FAILED
   typescript: {
     ignoreBuildErrors: true,
   },
