@@ -23,8 +23,8 @@ export default function LoginPage() {
   async function onSubmit(values: LoginValues) {
     setServerMsg(null);
     try {
-      // CẬP NHẬT: Trỏ đúng đến cổng 5000 và tiền tố v1 của Backend giống như trang Register
-      const res = await fetch("http://localhost:4000/api/v1/auth/login", {
+      // 1. CẬP NHẬT: Thay đổi localhost thành link API thật trên Render
+      const res = await fetch("https://keddyy-api.onrender.com/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
@@ -37,30 +37,28 @@ export default function LoginPage() {
         return;
       }
 
-      // KIỂM TRA VÀ LƯU THÔNG TIN: data.data khớp với cấu trúc trả về của controller
       const userData = data.data;
       if (data.ok) {
-    localStorage.setItem("userName", data.data.name);
-    localStorage.setItem("userEmail", data.data.email); // QUAN TRỌNG: Dòng này dùng để gọi API
-    window.dispatchEvent(new Event("userLogin"));
+        // Lưu thông tin vào máy để duy trì trạng thái đăng nhập
+        localStorage.setItem("userName", userData.name);
+        localStorage.setItem("userEmail", userData.email); 
         
-        // 2. Phát tín hiệu cho SiteHeader cập nhật ngay lập tức
-        window.dispatchEvent(new Event("userLogin")); 
+        // Phát tín hiệu cập nhật Header
+        window.dispatchEvent(new Event("userLogin"));
         
         setServerMsg(`Chào mừng ${userData.name} quay lại cửa hàng Noel! 🎄`);
 
-        // 3. Chuyển hướng sau một khoảng thời gian ngắn để hiện thông báo thành công
+        // Chuyển hướng về trang chủ
         setTimeout(() => {
-          // Ép reload để đảm bảo toàn bộ context (giỏ hàng, user) được làm mới
           window.location.href = "/"; 
         }, 1000);
       }
       
     } catch (error) {
-      setServerMsg("Lỗi kết nối đến Server Noel (Cổng 4000)");
+      // 2. CẬP NHẬT: Xóa thông báo số cổng để tránh gây nhầm lẫn
+      setServerMsg("Lỗi kết nối đến Server Noel. Vui lòng thử lại sau! ❄️");
     }
   }
-
   return (
     <main className="relative w-full min-h-[calc(100vh-140px)] flex items-center justify-center bg-[#4794EC] overflow-hidden">
       
