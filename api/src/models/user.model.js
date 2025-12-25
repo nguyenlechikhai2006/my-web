@@ -9,11 +9,4 @@ const userSchema = new mongoose.Schema({
   role: { type: String, default: "user" }
 }, { timestamps: true });
 
-// 2. Gán phương thức comparePassword vào userSchema
-// Lỗi nãy giờ là do bạn viết UserSchema (chữ U hoa) trong khi chưa khai báo nó
-userSchema.methods.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.passwordHash);
-};
-
-const User = mongoose.model("User", userSchema);
-module.exports = { User };
+module.exports = mongoose.model("User", userSchema);

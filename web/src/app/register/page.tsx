@@ -22,28 +22,35 @@ export default function RegisterPage() {
   async function onSubmit(values: RegisterValues) {
     setServerMsg(null);
     try {
-      const res = await fetch("/api/auth/register", {
+      // CẬP NHẬT: Trỏ đúng đến cổng 5000 và tiền tố v1 của Backend
+      const res = await fetch("http://localhost:4000/api/v1/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          name: values.name,
+          email: values.email,
+          password: values.password // Sẽ được controller mã hóa thành passwordHash
+        }),
       });
 
       const data = await res.json();
 
-      if (!res.ok) {
+      if (!res.ok || !data.ok) {
         setServerMsg(data?.message ?? "Đăng ký thất bại");
         return;
       }
 
       // TỰ ĐỘNG ĐĂNG NHẬP SAU KHI ĐĂNG KÝ THÀNH CÔNG
-      if (data.user && data.user.name) {
+      // Chỉnh sửa: data.data là cấu trúc trả về từ controller của bạn
+      const newUser = data.data; 
+      if (newUser && newUser.name) {
         // 1. Lưu tên người dùng mới vào máy
-        localStorage.setItem("userName", data.user.name);
+        localStorage.setItem("userName", newUser.name);
         
         // 2. Phát tín hiệu để SiteHeader hiển thị tên ngay
         window.dispatchEvent(new Event("userLogin")); 
         
-        setServerMsg(`Chúc mừng ${data.user.name}! Bạn đã nhận được thẻ thành viên Giáng Sinh! 🎄`);
+        setServerMsg(`Chúc mừng ${newUser.name}! Bạn đã nhận được thẻ thành viên Giáng Sinh! 🎄`);
 
         // 3. Chuyển hướng về trang chủ sau khi người dùng kịp đọc thông báo
         setTimeout(() => {
@@ -51,7 +58,7 @@ export default function RegisterPage() {
         }, 1500);
       }
     } catch (error) {
-      setServerMsg("Lỗi kết nối đến Server");
+      setServerMsg("Lỗi kết nối đến Server Noel (Cổng 5000)");
     }
   }
 
@@ -81,7 +88,7 @@ export default function RegisterPage() {
             <Gift className="absolute top-4 left-4 text-red-400 rotate-12" size={32} />
             <Bell className="absolute top-4 right-4 text-yellow-400 -rotate-12" size={32} />
             
-            <h1 className="text-3xl font-black text-white uppercase tracking-normal leading-normal">
+            <h1 className="text-3xl font-bold text-white uppercase tracking-normal leading-normal">
               Đăng Ký <span className="text-red-400"></span>
             </h1>
             <p className="text-white/70 text-[10px] mt-2 font-bold uppercase tracking-[0.2em]">Nhận ngay ưu đãi Noel 2025</p>
@@ -151,7 +158,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isSubmitting || !isValid}
-              className="w-full h-14 rounded-2xl bg-[#c41e3a] text-white font-black text-lg shadow-lg hover:bg-[#a01830] transition-all flex items-center justify-center gap-3 mt-4 active:scale-95"
+              className="w-full h-14 rounded-2xl bg-[#c41e3a] text-white font-bold text-lg shadow-lg hover:bg-[#a01830] transition-all flex items-center justify-center gap-3 mt-4 active:scale-95"
             >
               {isSubmitting ? <Snowflake className="animate-spin" /> : <>Đăng Ký 🎅</>}
             </button>
@@ -165,7 +172,7 @@ export default function RegisterPage() {
             <div className="text-center pt-2">
               <p className="text-xs text-slate-500 font-medium">
                 Đã có tài khoản?{" "}
-                <Link href="/login" className="text-[#c41e3a] font-black hover:underline ml-1">
+                <Link href="/login" className="text-[#c41e3a] font-bold hover:underline ml-1">
                   Đăng nhập tại đây
                 </Link>
               </p>

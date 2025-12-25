@@ -101,7 +101,7 @@ export default async function ProductDetailPage(
                             </span>
                         </div>
                         
-                        <h1 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight mb-2 uppercase italic group">
+                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-2 uppercase italic group">
                             {title}
                         </h1>
 

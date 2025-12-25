@@ -20,19 +20,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     /* Đổi viền thành đỏ nhạt và thêm hiệu ứng shadow đỏ khi hover */
     <div className="border-2 border-red-50 rounded-xl overflow-hidden bg-white hover:shadow-[0_0_15px_rgba(196,30,58,0.2)] transition-all duration-300 relative group">
       
-      {/* NÚT CHỈNH SỬA CHO ADMIN */}
-      {isAdmin && (
-        <button 
-          onClick={(e) => {
-            e.preventDefault();
-            const newPrice = prompt(`Nhập giá mới cho: ${title}`, String(price));
-            if (newPrice) console.log(`Cập nhật ID ${_id} thành: ${newPrice}đ`);
-          }}
-          className="absolute right-2 top-24 z-30 p-2 bg-green-600 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-        >
-          <Settings2 size={16} />
-        </button>
-      )}
+      
 
       {/* NHÃN GIÁNG SINH (Thay cho nhãn Deal đơn điệu) */}
       {isDeal && (

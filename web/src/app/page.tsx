@@ -29,7 +29,7 @@ export default function Home() {
                 </h2>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-black leading-tight drop-shadow-lg">
+            <h1 className="text-5xl md:text-7xl font-medium leading-tight drop-shadow-lg">
               YÊU THƯƠNG <br/> <span className="text-yellow-400">THÚ CƯNG</span>
             </h1>
             <p className="text-lg opacity-90 max-w-md">
@@ -76,7 +76,7 @@ export default function Home() {
             <h3 className="text-[#1e4eb8] font-bold uppercase tracking-widest text-sm mb-2 flex items-center gap-2">
               <span className="text-red-500">❄️</span> Danh mục
             </h3>
-            <h2 className="text-3xl font-black text-slate-800 italic">Dành Cho Bạn </h2>
+            <h2 className="text-3xl font-medium text-slate-800 italic">Dành Cho Bạn </h2>
           </div>
           <Link href="/shop" className="text-[#1e4eb8] font-bold hover:underline">
             Xem tất cả →

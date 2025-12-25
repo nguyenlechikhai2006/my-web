@@ -17,9 +17,9 @@ export default function CartPage() {
     return (
       <div className="p-20 text-center flex flex-col items-center gap-4">
         <ShoppingBag size={64} className="text-gray-300" />
-        <h2 className="text-2xl font-black text-gray-900 uppercase">Giỏ hàng Noel đang trống 🎁</h2>
+        <h2 className="text-2xl font-bold text-gray-900 uppercase">Giỏ hàng Noel đang trống 🎁</h2>
         {/* Về trang Shop như bạn muốn */}
-        <Link href="/shop" className="text-[#C41E3A] font-black hover:underline uppercase tracking-widest">
+        <Link href="/shop" className="text-[#C41E3A] font-bold hover:underline uppercase tracking-widest">
           Quay lại chọn quà ngay
         </Link>
       </div>
@@ -37,7 +37,7 @@ export default function CartPage() {
         <ArrowLeft size={16} /> Quay lại
       </button>
 
-      <h1 className="text-3xl font-black mb-10 text-[#C41E3A] italic uppercase tracking-tighter flex items-center gap-3">
+      <h1 className="text-3xl font-bold mb-10 text-[#C41E3A] italic uppercase tracking-tighter flex items-center gap-3">
         Giỏ hàng của bạn <Snowflake className="text-blue-300 animate-pulse" size={24} />
       </h1>
       
@@ -48,7 +48,7 @@ export default function CartPage() {
              {/* Nội dung item giữ nguyên */}
              <img src={item.image} alt={item.title} className="w-24 h-24 object-cover rounded-2xl border border-red-100" />
              <div className="flex-1">
-                <h3 className="font-black text-lg text-gray-900 uppercase tracking-tight">{item.title}</h3>
+                <h3 className="font-bold text-lg text-gray-900 uppercase tracking-tight">{item.title}</h3>
                 <p className="text-xs text-gray-500 font-medium mt-1">
                   {item.selectedFlavor && `Hương vị: ${item.selectedFlavor}`} 
                   {item.selectedSize && ` | Kích thước: ${item.selectedSize}`}
@@ -71,7 +71,7 @@ export default function CartPage() {
       {/* Tổng cộng */}
       <div className="mt-12 p-8 bg-[#C41E3A] rounded-[2rem] text-white flex justify-between items-center shadow-2xl shadow-red-200">
         <div>
-          <p className="text-xs opacity-90 uppercase font-black tracking-[0.2em]">Tổng cộng Noel</p>
+          <p className="text-xs opacity-90 uppercase font-bold tracking-[0.2em]">Tổng cộng Noel</p>
           <p className="text-4xl font-black leading-none mt-1">{formatVND(subtotal || 0)}</p>
         </div>
         <Link href="/checkout" className="bg-white text-[#C41E3A] px-12 py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-transform active:scale-95 shadow-lg">

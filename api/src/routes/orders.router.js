@@ -4,10 +4,12 @@ const { createOrderSchema } = require("../schemas/order.dto");
 const { requireAuth, requireRole } = require("../middlewares/auth");
 
 const router = express.Router();
-const validate = (schema) => (req, _res, next) => { try { req.body = schema.parse(req.body); next(); } catch (e) { e.status = 400; next(e); } };
 
-router.post("/", validate(createOrderSchema), (req, res, next) => Promise.resolve(createOrder(req, res, next)).catch(next));
-router.get("/:id", (req, res, next) => Promise.resolve(getOrderById(req, res, next)).catch(next));
-router.get("/", requireAuth, requireRole("admin"), (req, res, next) => Promise.resolve(listOrders(req, res, next)).catch(next));
+// Đường dẫn đúng đến controller (nhìn vào cột Explorer của bạn là orders.controller.js)
+const orderController = require("../controllers/orders.controller"); 
+
+// Định nghĩa route POST để lưu đơn hàng
+router.post("/", orderController.createOrder);
+router.get("/user/:email", orderController.getUserOrders);
 
 module.exports = router;

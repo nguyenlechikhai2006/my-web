@@ -74,7 +74,7 @@ export default function ShopPage() {
         {/* Header trang trí Noel (Bổ sung trang trí) */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
           <div className="text-center md:text-left">
-            <h1 className="text-4xl font-black text-[#C41E3A] italic flex items-center justify-center md:justify-start gap-3 drop-shadow-sm">
+            <h1 className="text-4xl font-bold text-[#C41E3A] italic flex items-center justify-center md:justify-start gap-3 drop-shadow-sm">
               <span className="text-3xl animate-bounce">🎄</span>
               CỬA HÀNG KEDDY
               <span className="text-3xl animate-pulse">🎁</span>
@@ -134,7 +134,7 @@ export default function ShopPage() {
           !isLoading && (
             <div className="bg-white rounded-[40px] p-20 text-center shadow-xl border-4 border-dashed border-red-100">
               <span className="text-8xl mb-4 block animate-wobble">🎅</span>
-              <p className="text-xl font-bold text-slate-800">Tuần lộc chưa tìm thấy sản phẩm này...</p>
+              <p className="text-xl font-bold text-slate-800">Keddy chưa cập nhật sản phẩm mục này hehe...</p>
               <button 
                 onClick={() => router.push(pathname)}
                 className="mt-6 px-8 py-3 bg-green-700 text-white rounded-full font-bold hover:bg-red-600 transition-colors shadow-lg"

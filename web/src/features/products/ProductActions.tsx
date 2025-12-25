@@ -135,7 +135,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
           </div>
           
           <div className="text-right">
-            <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">Tổng cộng Noel</p>
+            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Tổng cộng Noel</p>
             <p className="text-3xl font-black text-[#C41E3A] leading-none">
               {/* SỬA 3: Dùng biến basePrice đã tính sẵn thay vì tính lại trong render */}
               {formatVND(basePrice * quantity)}

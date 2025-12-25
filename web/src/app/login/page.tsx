@@ -23,37 +23,41 @@ export default function LoginPage() {
   async function onSubmit(values: LoginValues) {
     setServerMsg(null);
     try {
-      const res = await fetch("/api/auth/login", {
+      // CẬP NHẬT: Trỏ đúng đến cổng 5000 và tiền tố v1 của Backend giống như trang Register
+      const res = await fetch("http://localhost:4000/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
 
-      // CHỈ ĐỌC JSON MỘT LẦN DUY NHẤT Ở ĐÂY
       const data = await res.json();
 
-      if (!res.ok) {
-        setServerMsg(data?.message ?? "Đăng nhập thất bại");
+      if (!res.ok || !data.ok) {
+        setServerMsg(data?.message ?? "Email hoặc mật khẩu không đúng 🎅");
         return;
       }
 
-      // KIỂM TRA VÀ LƯU TÊN: data.user.name dành cho tài khoản bạn vừa đăng ký
-      if (data.user && data.user.name) {
-        localStorage.setItem("userName", data.user.name);
+      // KIỂM TRA VÀ LƯU THÔNG TIN: data.data khớp với cấu trúc trả về của controller
+      const userData = data.data;
+      if (data.ok) {
+    localStorage.setItem("userName", data.data.name);
+    localStorage.setItem("userEmail", data.data.email); // QUAN TRỌNG: Dòng này dùng để gọi API
+    window.dispatchEvent(new Event("userLogin"));
         
-        // Đánh chuông báo hiệu cho SiteHeader cập nhật "Chào, aaa3"
+        // 2. Phát tín hiệu cho SiteHeader cập nhật ngay lập tức
         window.dispatchEvent(new Event("userLogin")); 
         
-        setServerMsg(`Chào mừng ${data.user.name} quay lại! 🎄`);
-      }
+        setServerMsg(`Chào mừng ${userData.name} quay lại cửa hàng Noel! 🎄`);
 
-      setTimeout(() => {
-        router.push("/");
-        router.refresh(); 
-      }, 800);
+        // 3. Chuyển hướng sau một khoảng thời gian ngắn để hiện thông báo thành công
+        setTimeout(() => {
+          // Ép reload để đảm bảo toàn bộ context (giỏ hàng, user) được làm mới
+          window.location.href = "/"; 
+        }, 1000);
+      }
       
     } catch (error) {
-      setServerMsg("Lỗi kết nối đến Server");
+      setServerMsg("Lỗi kết nối đến Server Noel (Cổng 5000)");
     }
   }
 
@@ -63,7 +67,7 @@ export default function LoginPage() {
       {/* 1. LỚP TRANG TRÍ TRÀN VIỀN */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 opacity-20" 
-             style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/snow.png')` }}></div>
+              style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/snow.png')` }}></div>
         
         <Snowflake className="absolute top-[15%] left-[5%] animate-bounce text-white/40" size={48} />
         <Snowflake className="absolute top-[25%] right-[5%] animate-pulse text-white/30" size={56} />
@@ -74,7 +78,6 @@ export default function LoginPage() {
       </div>
 
       {/* 2. FORM ĐĂNG NHẬP TRUNG TÂM */}
-      {/* Thêm mx-auto để cưỡng bức căn giữa tuyệt đối */}
       <div className="relative z-10 w-full max-w-[420px] mx-auto px-4 my-10 animate-in fade-in zoom-in duration-500">
         <div className="bg-white rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] overflow-hidden border-[10px] border-[#138713]">
           
@@ -82,8 +85,8 @@ export default function LoginPage() {
             <Gift className="absolute top-4 left-4 text-red-400 rotate-12" size={32} />
             <Bell className="absolute top-4 right-4 text-yellow-400 -rotate-12" size={32} />
             
-            <h1 className="text-3xl font-black text-white uppercase tracking-normal leading-normal">
-              ĐĂNG NHẬP <br/> <span className="text-[#ff4d4d]">{serverMsg && " Keddy"}</span>
+            <h1 className="text-3xl font-bold text-white uppercase tracking-normal leading-normal">
+              ĐĂNG NHẬP <br/> <span className="text-[#ff4d4d]">{serverMsg?.includes('Chào mừng') ? " Keddy" : ""}</span>
             </h1>
             <div className="h-1.5 w-16 bg-yellow-400 mx-auto mt-4 rounded-full"></div>
             <p className="text-white/70 text-[10px] mt-2 font-bold uppercase tracking-widest">Keddy Pet Shop</p>
@@ -91,22 +94,24 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6">
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-black text-[#D92020] tracking-wider ml-1">Email*</label>
+              <label className="block text-[11px] font-bold text-[#D92020] tracking-wider ml-1">Email*</label>
               <input
                 type="email"
                 className={`w-full bg-slate-50 border-2 rounded-2xl h-12 px-4 focus:ring-4 focus:ring-red-50 outline-none transition-all ${errors.email ? 'border-red-500' : 'border-slate-100 focus:border-[#c41e3a]'}`}
                 {...register("email")}
+                disabled={isSubmitting}
                 placeholder="ten@example.com"
               />
               {errors.email && <p className="text-[10px] text-red-600 font-bold ml-2 italic">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-black text-[#D92020] tracking-wider ml-1">Mật Khẩu*</label>
+              <label className="block text-[11px] font-bold text-[#D92020] tracking-wider ml-1">Mật Khẩu*</label>
               <input
                 type="password"
                 className={`w-full bg-slate-50 border-2 rounded-2xl h-12 px-4 focus:ring-4 focus:ring-red-50 outline-none transition-all ${errors.password ? 'border-red-500' : 'border-slate-100 focus:border-[#c41e3a]'}`}
                 {...register("password")}
+                disabled={isSubmitting}
                 placeholder="••••••"
               />
               {errors.password && <p className="text-[10px] text-red-600 font-bold ml-2 italic">{errors.password.message}</p>}
@@ -122,14 +127,14 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting || !isValid}
-              className="w-full h-14 rounded-2xl bg-[#c41e3a] text-white font-black text-lg shadow-lg hover:bg-[#a01830] transition-all flex items-center justify-center gap-3 mt-4 active:scale-95"
+              className="w-full h-14 rounded-2xl bg-[#c41e3a] text-white font-bold text-lg shadow-lg hover:bg-[#a01830] transition-all flex items-center justify-center gap-3 mt-4 active:scale-95"
             >
               {isSubmitting ? <Snowflake className="animate-spin" /> : <>Vào Cửa Hàng 🎅</>}
             </button>
 
             <div className="text-center pt-2">
               <Link href="/register" className="text-xs text-slate-500 font-medium hover:text-[#c41e3a]">
-                Chưa có tài khoản? <span className="font-black border-b border-slate-300">Đăng ký nhận quà</span>
+                Chưa có tài khoản? <span className="font-bold border-b border-slate-300">Đăng ký nhận quà</span>
               </Link>
             </div>
           </form>

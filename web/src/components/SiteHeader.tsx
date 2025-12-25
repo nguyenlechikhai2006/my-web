@@ -15,19 +15,13 @@ export default function SiteHeader() {
 
   // --- PHẦN LOGIC CẬP NHẬT TỨC THÌ ---
   useEffect(() => {
-    // Hàm kiểm tra và cập nhật tên từ localStorage
     const checkUser = () => {
       const storedName = localStorage.getItem("userName");
       setUserName(storedName);
     };
 
-    // Kiểm tra ngay khi component mount
     checkUser();
-
-    // Lắng nghe sự kiện 'storage' (khi tab khác thay đổi localStorage)
     window.addEventListener("storage", checkUser);
-
-    // Lắng nghe sự kiện tùy chỉnh nếu đăng nhập cùng tab (giúp hiện tên ngay lập tức)
     window.addEventListener("userLogin", checkUser);
 
     return () => {
@@ -36,8 +30,10 @@ export default function SiteHeader() {
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Ngăn chặn sự kiện click lan ra ngoài làm chuyển hướng trang
     localStorage.removeItem("userName");
+    localStorage.removeItem("userEmail"); // Xóa thêm email để bảo mật
     setUserName(null);
     router.push("/");
     router.refresh();
@@ -73,7 +69,7 @@ export default function SiteHeader() {
     return (
       <div className="absolute top-full left-0 w-[700px] bg-[#f8f9fa] shadow-2xl rounded-b-2xl p-8 grid grid-cols-3 gap-8 z-[100] border-t-4 border-yellow-400 animate-in fade-in slide-in-from-top-2 duration-200">
         <div>
-          <h3 className="text-[#1e4eb8] font-black mb-4 uppercase text-[15px] border-b border-gray-200 pb-2">Thức Ăn Cho {isDog ? 'Chó' : 'Mèo'}</h3>
+          <h3 className="text-[#1e4eb8] font-bold mb-4 uppercase text-[15px] border-b border-gray-200 pb-2">Thức Ăn Cho {isDog ? 'Chó' : 'Mèo'}</h3>
           <ul className="space-y-3 text-gray-700 text-[14px]">
             <li className="hover:text-blue-600 transition-all hover:translate-x-1"><Link href={`/shop?category=${type}&sub=hat`}>Thức Ăn Hạt</Link></li>
             <li className="hover:text-blue-600 transition-all hover:translate-x-1"><Link href={`/shop?category=${type}&sub=uot`}>Thức Ăn Ướt</Link></li>
@@ -89,7 +85,7 @@ export default function SiteHeader() {
           </ul>
         </div>
         <div>
-          <h3 className="text-[#1e4eb8] font-black mb-4 uppercase text-[15px] border-b border-gray-200 pb-2">Phụ kiện & Đồ chơi</h3>
+          <h3 className="text-[#1e4eb8] font-bold mb-4 uppercase text-[15px] border-b border-gray-200 pb-2">Phụ kiện & Đồ chơi</h3>
           <ul className="space-y-3 text-gray-700 text-[14px]">
             <li className="hover:text-blue-600 transition-all hover:translate-x-1"><Link href="/shop?category=phu-kien&sub=do-choi">Đồ Chơi</Link></li>
             <li className="hover:text-blue-600 transition-all hover:translate-x-1"><Link href="/shop?category=phu-kien&sub=vong-co">Vòng Cổ - Dây Dắt</Link></li>
@@ -98,7 +94,7 @@ export default function SiteHeader() {
           </ul>
         </div>
         <div>
-          <h3 className="text-[#1e4eb8] font-black mb-4 uppercase text-[15px] border-b border-gray-200 pb-2">Vệ Sinh</h3>
+          <h3 className="text-[#1e4eb8] font-bold mb-4 uppercase text-[15px] border-b border-gray-200 pb-2">Vệ Sinh</h3>
           <ul className="space-y-3 text-gray-700 text-[14px]">
             <li className="hover:text-blue-600 transition-all hover:translate-x-1"><Link href="/shop?category=ve-sinh&sub=xit-khu-mui">Xịt Khử Mùi</Link></li>
             <li className="hover:text-blue-600 transition-all hover:translate-x-1"><Link href={`/shop?category=ve-sinh&sub=sua-tam`}>Sữa Tắm {isDog ? 'Chó' : 'Mèo'}</Link></li>
@@ -111,7 +107,7 @@ export default function SiteHeader() {
   const MegaMenuAll = () => (
     <div className="absolute top-full left-0 w-[1100px] bg-[#f8f9fa] shadow-2xl rounded-b-2xl p-10 grid grid-cols-5 gap-6 z-[100] border-t-4 border-yellow-400 animate-in fade-in slide-in-from-top-2 duration-200">
       <div>
-        <h3 className="text-[#1e4eb8] font-black mb-5 uppercase text-[14px] border-b pb-2">Thức Ăn Cho Chó</h3>
+        <h3 className="text-[#1e4eb8] font-bold mb-5 uppercase text-[14px] border-b pb-2">Thức Ăn Cho Chó</h3>
         <ul className="space-y-3 text-gray-700 text-[13px]">
           <li className="hover:text-blue-600 hover:translate-x-1 transition-all"><Link href="/shop?category=cho&sub=hat">Thức Ăn Hạt</Link></li>
           <li className="hover:text-blue-600 hover:translate-x-1 transition-all"><Link href="/shop?category=cho&sub=uot">Thức Ăn Ướt</Link></li>
@@ -121,7 +117,7 @@ export default function SiteHeader() {
         </ul>
       </div>
       <div>
-        <h3 className="text-[#1e4eb8] font-black mb-5 uppercase text-[14px] border-b pb-2">Thức Ăn Cho Mèo</h3>
+        <h3 className="text-[#1e4eb8] font-bold mb-5 uppercase text-[14px] border-b pb-2">Thức Ăn Cho Mèo</h3>
         <ul className="space-y-3 text-gray-700 text-[13px]">
           <li className="hover:text-blue-600 hover:translate-x-1 transition-all"><Link href="/shop?category=meo&sub=hat">Thức Ăn Hạt</Link></li>
           <li className="hover:text-blue-600 hover:translate-x-1 transition-all"><Link href="/shop?category=meo&sub=uot">Thức Ăn Ướt</Link></li>
@@ -130,7 +126,7 @@ export default function SiteHeader() {
         </ul>
       </div>
       <div>
-        <h3 className="text-[#1e4eb8] font-black mb-5 uppercase text-[14px] border-b pb-2">Phụ kiện & Đồ chơi</h3>
+        <h3 className="text-[#1e4eb8] font-bold mb-5 uppercase text-[14px] border-b pb-2">Phụ kiện & Đồ chơi</h3>
         <ul className="space-y-3 text-gray-700 text-[13px]">
           <li className="hover:text-blue-600 hover:translate-x-1 transition-all"><Link href="/shop?category=phu-kien&sub=do-choi">Đồ Chơi</Link></li>
           <li className="hover:text-blue-600 hover:translate-x-1 transition-all"><Link href="/shop?category=phu-kien&sub=thoi-trang">Thời Trang - Quần Áo</Link></li>
@@ -140,14 +136,14 @@ export default function SiteHeader() {
         </ul>
       </div>
       <div>
-        <h3 className="text-[#1e4eb8] font-black mb-5 uppercase text-[14px] border-b pb-2">Chăm Sóc Sức Khoẻ</h3>
+        <h3 className="text-[#1e4eb8] font-bold mb-5 uppercase text-[14px] border-b pb-2">Chăm Sóc Sức Khoẻ</h3>
         <ul className="space-y-3 text-gray-700 text-[13px]">
           <li className="hover:text-blue-600 hover:translate-x-1 transition-all"><Link href="/shop?category=suc-khoe&sub=tpcn">Thực Phẩm Chức Năng</Link></li>
           <li className="hover:text-blue-600 hover:translate-x-1 transition-all"><Link href="/shop?category=suc-khoe&sub=vitamin">Vitamin - Thực Phẩm Bổ Sung</Link></li>
         </ul>
       </div>
       <div>
-        <h3 className="text-[#1e4eb8] font-black mb-5 uppercase text-[14px] border-b pb-2">Vệ Sinh</h3>
+        <h3 className="text-[#1e4eb8] font-bold mb-5 uppercase text-[14px] border-b pb-2">Vệ Sinh</h3>
         <ul className="space-y-3 text-gray-700 text-[13px]">
           <li className="hover:text-blue-600 hover:translate-x-1 transition-all"><Link href="/shop?category=ve-sinh&sub=xit-khu-mui">Xịt Khử Mùi</Link></li>
           <li className="hover:text-blue-600 hover:translate-x-1 transition-all"><Link href="/shop?category=ve-sinh&sub=sua-tam">Sữa Tắm</Link></li>
@@ -203,33 +199,39 @@ export default function SiteHeader() {
                         <CartIndicator /> 
                     </span>
                 </div>
-                <span className="hidden sm:inline font-black uppercase text-[10px] tracking-widest mt-1 group-hover:text-yellow-300">
+                <span className="hidden sm:inline font-medium uppercase text-[10px] tracking-widest mt-1 group-hover:text-yellow-300">
                     Giỏ hàng 🎁
                 </span>
             </div>
 
             {userName ? (
-              <div className="flex flex-col items-center group relative">
+              // PHẦN BỔ SUNG: Chuyển hướng đến Profile khi click vào vùng User
+              <div 
+                className="flex flex-col items-center group relative cursor-pointer"
+                onClick={() => router.push('/profile')}
+              >
                 <div className="p-1">
-                  <div className="w-7 h-7 bg-yellow-400 rounded-full flex items-center justify-center text-[#1e4eb8] font-bold border border-white shadow-sm">
+                  <div className="w-7 h-7 bg-yellow-400 rounded-full flex items-center justify-center text-[#1e4eb8] font-bold border border-white shadow-sm group-hover:scale-110 transition-transform">
                     {userName.charAt(0).toUpperCase()}
                   </div>
                 </div>
-                <div className="flex items-center gap-1 cursor-default">
-                  <span className="hidden sm:inline font-bold text-yellow-300">Chào, {userName}</span>
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline font-bold text-yellow-300 group-hover:text-white transition-colors">
+                    Chào, {userName}
+                  </span>
                   <button 
                     onClick={handleLogout}
-                    className="hover:text-red-400 transition-colors"
+                    className="p-1 hover:bg-red-500 rounded-full transition-colors bg-white/10"
                     title="Đăng xuất"
                   >
-                    <LogOut size={14} />
+                    <LogOut size={12} className="text-white" />
                   </button>
                 </div>
               </div>
             ) : (
               <Link href="/login" className="flex flex-col items-center group">
                 <div className="p-1"><User size={24} className="group-hover:text-yellow-400 transition-colors" /></div>
-                <span className="hidden sm:inline font-medium">Đăng nhập</span>
+                <span className="hidden sm:inline font-medium uppercase text-[10px] tracking-widest mt-1 group-hover:text-yellow-300">Đăng nhập</span>
               </Link>
             )}
           </div>
@@ -269,10 +271,7 @@ export default function SiteHeader() {
           </div>
 
           <NavItem href="/shop/hang-moi">Hàng mới về</NavItem>
-          <NavItem href="/shop/phu-kien">Phụ kiện</NavItem>
-          <NavItem href="/khuyen-mai" className="text-yellow-300">
-            <span className="animate-pulse">🎁</span> Ưu đãi Noel
-          </NavItem>
+          <NavItem href="/shop/phu-kien">Quà noel🎁</NavItem>
           
           <NavItem href="/admin" className="ml-auto opacity-40 text-[10px] hover:opacity-100 uppercase tracking-widest">
             Admin

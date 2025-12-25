@@ -67,19 +67,7 @@ export default function SiteFooter() {
             </ul>
           </div>
 
-          {/* Cột 4: Đăng ký */}
-          <div className="bg-white/10 p-6 rounded-[32px] border border-white/20">
-            <h4 className="font-bold text-lg mb-4 italic text-yellow-400">Nhận Quà Noel!</h4>
-            <p className="text-xs mb-4 text-blue-50">Để lại email để nhận mã giảm giá 30%.</p>
-            <input 
-              type="email" 
-              placeholder="Email của bạn..." 
-              className="w-full bg-white text-slate-800 px-4 py-3 rounded-2xl text-sm focus:outline-none"
-            />
-            <button className="w-full mt-3 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-2xl shadow-lg transition-all active:scale-95">
-              ĐĂNG KÝ
-            </button>
-          </div>
+          
         </div>
 
         <div className="pt-8 border-t border-white/10 text-center">
