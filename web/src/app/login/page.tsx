@@ -24,7 +24,7 @@ export default function LoginPage() {
     setServerMsg(null);
     try {
       // 1. CẬP NHẬT: Thay đổi localhost thành link API thật trên Render
-      const res = await fetch("https://keddyy-api.onrender.com/api/v1/auth/login", {
+      const res = await fetch("https://keddyy-api.onrender.com", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
