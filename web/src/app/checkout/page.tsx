@@ -55,7 +55,7 @@ export default function CheckoutPage() {
     setSubmitting(true);
     try {
       const userEmail = localStorage.getItem("userEmail");
-      const response = await fetch("http://localhost:5000/api/v1/orders", { 
+      const response = await fetch("http://localhost:4000/api/v1/orders", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -103,7 +103,7 @@ export default function CheckoutPage() {
     if (isWaitingPayment && !paymentConfirmed) {
       interval = setInterval(async () => {
         try {
-          const res = await fetch(`http://localhost:5000/api/v1/payments/check-banking?memo=${orderMemo}&amount=${totalAmount}`);
+          const res = await fetch(`http://localhost:4000/api/v1/payments/check-banking?memo=${orderMemo}&amount=${totalAmount}`);
           const data = await res.json();
           
           if (data.paid) {
