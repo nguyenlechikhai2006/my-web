@@ -57,7 +57,7 @@ export default function LoginPage() {
       }
       
     } catch (error) {
-      setServerMsg("Lỗi kết nối đến Server Noel (Cổng 5000)");
+      setServerMsg("Lỗi kết nối đến Server Noel (Cổng 4000)");
     }
   }
 

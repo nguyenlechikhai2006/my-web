@@ -58,7 +58,7 @@ export default function RegisterPage() {
         }, 1500);
       }
     } catch (error) {
-      setServerMsg("Lỗi kết nối đến Server Noel (Cổng 5000)");
+      setServerMsg("Lỗi kết nối đến Server Noel (Cổng 4000)");
     }
   }
 
