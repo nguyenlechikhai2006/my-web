@@ -3,22 +3,27 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 
-// SỬA LỖI TẠI ĐÂY: Vì app.js nằm trong src, gọi trực tiếp thư mục db
-const { connectMongo, bindMongoLogs } = require("./db/mongoose"); 
+// SỬA LỖI ĐƯỜNG DẪN: Nếu app.js nằm trong src, phải dùng ../ để ra ngoài tìm thư mục db
+const { connectMongo, bindMongoLogs } = require("./db/mongoose");
 
 const app = express();
 
 // 1. KẾT NỐI DATABASE
-connectMongo();
+// Thêm .catch để tránh sập app nếu mất mạng hoặc lỗi IP Database
+connectMongo().catch(err => console.error("❌ Database connection error:", err));
 bindMongoLogs();
 
 // 2. CẤU HÌNH MIDDLEWARE
 app.set("trust proxy", 1);
 app.use(helmet({ crossOriginResourcePolicy: false }));
 
-// CORS theo ENV
+// SỬA LỖI CORS: Cho phép link Render của bạn truy cập
 const allowOrigin = process.env.CORS_ORIGIN || "http://localhost:3000";
-app.use(cors({ origin: allowOrigin, credentials: true }));
+app.use(cors({ 
+  origin: allowOrigin, 
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"]
+}));
 
 // Body parser & logger
 app.use(express.json({ limit: "10kb" }));
@@ -29,7 +34,7 @@ app.get("/", (req, res) => {
   res.json({ ok: true, service: "shoply-api", version: "v1.0.0" });
 });
 
-// SỬA LỖI TẠI ĐÂY: Gọi trực tiếp vào thư mục routes cùng cấp với app.js
+// SỬA LỖI ĐƯỜNG DẪN: Các router này nằm cùng cấp trong thư mục src/routes
 const authRouter = require("./routes/auth.router");
 const productsRouter = require("./routes/products.router");
 const ordersRouter = require("./routes/orders.router");
@@ -53,6 +58,10 @@ app.use((req, res) => {
 // Error Handler chuẩn JSON
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
+  
+  // In lỗi ra terminal để bạn dễ debug khi app chạy local
+  console.error("🔥 Error:", err.message);
+
   const status = err.status || 500;
   res.status(status).json({
     ok: false,
