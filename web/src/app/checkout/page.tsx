@@ -50,12 +50,13 @@ export default function CheckoutPage() {
     return `https://img.vietqr.io/image/${MY_BANK.BANK_ID}-${MY_BANK.ACCOUNT_NO}-compact2.png?amount=${totalAmount}&addInfo=${description}&accountName=${encodeURIComponent(MY_BANK.ACCOUNT_NAME)}`;
   }, [totalAmount, orderMemo]);
 
-  // 3. LOGIC LƯU ĐƠN HÀNG (TÁCH RIÊNG ĐỂ DÙNG CHUNG)
+  // 3. LOGIC LƯU ĐƠN HÀNG (SỬ DỤNG BIẾN MÔI TRƯỜNG)
   const handleFinalSubmit = async () => {
     setSubmitting(true);
     try {
       const userEmail = localStorage.getItem("userEmail");
-      const response = await fetch("http://localhost:4000", { 
+      // SỬA TẠI ĐÂY: Thay localhost bằng biến môi trường
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}`, { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -96,14 +97,15 @@ export default function CheckoutPage() {
     }
   };
 
-  // 4. LOGIC QUÉT THANH TOÁN (EFFECT)
+  // 4. LOGIC QUÉT THANH TOÁN (SỬ DỤNG BIẾN MÔI TRƯỜNG)
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
     if (isWaitingPayment && !paymentConfirmed) {
       interval = setInterval(async () => {
         try {
-          const res = await fetch(`http://localhost:4000/api/v1/payments/check-banking?memo=${orderMemo}&amount=${totalAmount}`);
+          // SỬA TẠI ĐÂY: Thay localhost bằng biến môi trường
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/payments/check-banking?memo=${orderMemo}&amount=${totalAmount}`);
           const data = await res.json();
           
           if (data.paid) {
@@ -121,7 +123,7 @@ export default function CheckoutPage() {
     return () => clearInterval(interval);
   }, [isWaitingPayment, paymentConfirmed, orderMemo, totalAmount]);
 
-  // 5. KIỂM TRA HYDRATED (CHỈ ĐẶT SAU KHI ĐÃ GỌI HẾT HOOKS)
+  // 5. KIỂM TRA HYDRATED
   if (!hydrated) return null;
 
   async function onSubmit(e: React.FormEvent) {
@@ -139,7 +141,7 @@ export default function CheckoutPage() {
     handleFinalSubmit();
   }
 
-  // GIAO DIỆN THÀNH CÔNG
+  // --- PHẦN GIAO DIỆN GIỮ NGUYÊN ---
   if (result) {
     return (
       <main className="container mx-auto px-4 py-20 text-center max-w-2xl">

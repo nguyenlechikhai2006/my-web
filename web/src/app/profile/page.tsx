@@ -25,7 +25,8 @@ export default function ProfilePage() {
 
   const fetchOrders = async (email: string) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/orders/user/${email}`);
+      // SỬA TẠI ĐÂY: Thay localhost bằng biến môi trường NEXT_PUBLIC_API_BASE_URL
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/orders/user/${email}`);
       const data = await res.json();
       if (data.success || data.ok) setOrders(data.data);
     } catch (err) {
@@ -92,10 +93,10 @@ export default function ProfilePage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="flex items-center gap-2">
-                           <span className="text-[10px] font-black bg-green-100 text-green-700 px-3 py-1 rounded-full uppercase">
-                             Mã: {order._id.slice(-6).toUpperCase()}
-                           </span>
-                           <span className="text-[10px] font-bold text-orange-500 italic">● {order.status === 'pending' ? 'Chờ xử lý' : 'Đang vận chuyển'}</span>
+                            <span className="text-[10px] font-black bg-green-100 text-green-700 px-3 py-1 rounded-full uppercase">
+                              Mã: {order._id.slice(-6).toUpperCase()}
+                            </span>
+                            <span className="text-[10px] font-bold text-orange-500 italic">● {order.status === 'pending' ? 'Chờ xử lý' : 'Đang vận chuyển'}</span>
                         </div>
                         <p className="text-xs text-slate-400 mt-3 flex items-center gap-1">
                           <Calendar size={12} /> Ngày đặt: {new Date(order.createdAt).toLocaleDateString('vi-VN')}

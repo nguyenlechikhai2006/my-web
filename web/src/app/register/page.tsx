@@ -23,7 +23,7 @@ export default function RegisterPage() {
     setServerMsg(null);
     try {
       // CẬP NHẬT: Trỏ đúng đến cổng 5000 và tiền tố v1 của Backend
-      const res = await fetch("http://localhost:4000", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

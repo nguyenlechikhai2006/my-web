@@ -24,7 +24,7 @@ export default function LoginPage() {
     setServerMsg(null);
     try {
       // 1. CẬP NHẬT: Thay đổi localhost thành link API thật trên Render
-      const res = await fetch("http://localhost:4000", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
