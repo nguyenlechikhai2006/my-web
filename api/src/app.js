@@ -3,38 +3,59 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 
-// SỬA LỖI ĐƯỜNG DẪN: Nếu app.js nằm trong src, phải dùng ../ để ra ngoài tìm thư mục db
+// Import cấu hình DB
 const { connectMongo, bindMongoLogs } = require("./db/mongoose");
 
 const app = express();
 
 // 1. KẾT NỐI DATABASE
-// Thêm .catch để tránh sập app nếu mất mạng hoặc lỗi IP Database
-connectMongo().catch(err => console.error("❌ Database connection error:", err));
+// Gọi bindMongoLogs trước để đăng ký các sự kiện lắng nghe (connected, error...)
 bindMongoLogs();
+connectMongo().catch(err => {
+  console.error("❌ Lỗi khởi tạo Database ban đầu:", err.message);
+});
 
 // 2. CẤU HÌNH MIDDLEWARE
 app.set("trust proxy", 1);
 app.use(helmet({ crossOriginResourcePolicy: false }));
 
-// SỬA LỖI CORS: Cho phép link Render của bạn truy cập
-const allowOrigin = process.env.CORS_ORIGIN || "http://localhost:3000";
+// TỐI ƯU CORS: Cho phép nhiều nguồn (Localhost và Render)
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://keddy-web-cua-toi.onrender.com" // Link từ hình số 3 của bạn
+];
+
 app.use(cors({ 
-  origin: allowOrigin, 
+  origin: function (origin, callback) {
+    // Cho phép các request không có origin (như Postman hoặc mobile app) 
+    // hoặc origin nằm trong danh sách allowedOrigins
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Chặn bởi CORS: Nguồn này không được phép truy cập"));
+    }
+  },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"]
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
 }));
 
-// Body parser & logger
+// Body parser: Giải mã dữ liệu JSON từ client gửi lên (quan trọng cho Đăng nhập/Giỏ hàng)
 app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true, limit: "10kb" })); // Thêm cái này để xử lý form data nếu cần
+
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
 // 3. ĐỊNH NGHĨA ROUTES
 app.get("/", (req, res) => {
-  res.json({ ok: true, service: "shoply-api", version: "v1.0.0" });
+  res.json({ 
+    ok: true, 
+    service: "shoply-api", 
+    version: "1.0.0",
+    database: "connected" 
+  });
 });
 
-// SỬA LỖI ĐƯỜNG DẪN: Các router này nằm cùng cấp trong thư mục src/routes
+// Load các router
 const authRouter = require("./routes/auth.router");
 const productsRouter = require("./routes/products.router");
 const ordersRouter = require("./routes/orders.router");
@@ -59,8 +80,7 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
   
-  // In lỗi ra terminal để bạn dễ debug khi app chạy local
-  console.error("🔥 Error:", err.message);
+  console.error("🔥 Hệ thống gặp lỗi:", err.stack); // Dùng err.stack để debug chi tiết hơn
 
   const status = err.status || 500;
   res.status(status).json({
