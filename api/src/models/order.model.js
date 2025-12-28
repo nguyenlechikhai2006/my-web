@@ -10,7 +10,9 @@ const OrderSchema = new mongoose.Schema({
   // Chi tiết giỏ hàng
   items: [
     {
-      productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+      // SỬA TẠI ĐÂY: Thay mongoose.Schema.Types.ObjectId bằng String
+      // Đồng thời bỏ ref: "Product" nếu bạn không dùng collection Product riêng biệt
+      productId: { type: String, required: true }, 
       name: String,
       price: Number,
       quantity: { type: Number, default: 1 },
