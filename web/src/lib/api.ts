@@ -1,13 +1,17 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000/api/v1";
+// Chỉ lấy link gốc từ Render (Ví dụ: https://keddy-api1.onrender.com)
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  // 1. Tự động chuẩn hóa đường dẫn (Tránh việc thiếu dấu /)
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
-  const url = path.startsWith("http") ? path : `${BASE_URL}${cleanPath}`;
+  
+  // LUÔN LUÔN chèn /api/v1 vào giữa link gốc và path
+  const url = path.startsWith("http") 
+    ? path 
+    : `${BASE_URL}/api/v1${cleanPath}`;
+
+  console.log("🚀 Đang gọi thực tế đến:", url); // Thêm dòng này để bạn nhìn thấy link trong Console
 
   const headers = new Headers(options.headers || {});
-  
-  // Chỉ set Content-Type là JSON nếu không phải gửi file (FormData)
   if (!(options.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }
@@ -19,20 +23,15 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
       cache: "no-store" 
     });
 
-    // 2. Xử lý khi có lỗi từ Server (Status code 4xx, 5xx)
     if (!res.ok) {
       let message = `Lỗi ${res.status}: ${res.statusText}`;
       try { 
         const errorData = await res.json(); 
-        // Lấy message từ cấu hình error chuẩn mà mình đã sửa ở app.js
         message = errorData?.error?.message || errorData?.message || message; 
-      } catch (e) {
-        // Nếu không parse được JSON lỗi
-      }
+      } catch (e) {}
       throw new Error(message);
     }
 
-    // 3. Trả về dữ liệu JSON
     return res.json() as Promise<T>;
   } catch (error: any) {
     console.error("🌐 API Fetch Error:", error.message);
