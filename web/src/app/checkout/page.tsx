@@ -20,8 +20,8 @@ const MY_BANK = {
 
 type PM = "cod" | "banking";
 
-// Ưu tiên lấy URL từ biến môi trường, mặc định là cổng 4000
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+// THAY THẾ CỔNG 4000: Ưu tiên lấy URL từ biến môi trường của Render
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://keddy-api1.onrender.com";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -39,7 +39,7 @@ export default function CheckoutPage() {
   const [isWaitingPayment, setIsWaitingPayment] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
 
-  // 1. KHAI BÁO CÁC HOOKS TÍNH TOÁN TRÊN CÙNG
+  // --- KHAI BÁO CÁC HOOKS TÍNH TOÁN (PHẢI TRÊN CÙNG ĐỂ TRÁNH LỖI) ---
   const orderMemo = useMemo(() => {
     return `KEDDY${Math.floor(1000 + Math.random() * 9000)}`;
   }, []);
@@ -53,7 +53,7 @@ export default function CheckoutPage() {
     return `https://img.vietqr.io/image/${MY_BANK.BANK_ID}-${MY_BANK.ACCOUNT_NO}-compact2.png?amount=${totalAmount}&addInfo=${description}&accountName=${encodeURIComponent(MY_BANK.ACCOUNT_NAME)}`;
   }, [totalAmount, orderMemo]);
 
-  // 2. LOGIC LƯU ĐƠN HÀNG (SỬ DỤNG APIFETCH ĐỂ ĐỒNG BỘ VỚI BACKEND)
+  // LOGIC LƯU ĐƠN HÀNG (SỬ DỤNG APIFETCH GỬI ĐẾN SERVER RENDER)
   const handleFinalSubmit = async () => {
     setSubmitting(true);
     try {
@@ -97,14 +97,14 @@ export default function CheckoutPage() {
     }
   };
 
-  // 3. LOGIC KIỂM TRA THANH TOÁN (GỌI ĐẾN CỔNG 4000 HOẶC LINK RENDER)
+  // LOGIC KIỂM TRA THANH TOÁN (POLLING GỌI ĐẾN RENDER)
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
     if (isWaitingPayment && !paymentConfirmed) {
       interval = setInterval(async () => {
         try {
-          // Sử dụng fetch trực tiếp đến Backend để đối soát
+          // Gọi API đối soát đến server Render thay vì localhost
           const checkRes = await fetch(`${BASE_URL}/api/v1/payments/check-banking?memo=${orderMemo}&amount=${totalAmount}`);
           const checkData = await checkRes.json();
 
@@ -112,10 +112,10 @@ export default function CheckoutPage() {
             setPaymentConfirmed(true);
             setIsWaitingPayment(false);
             clearInterval(interval);
-            handleFinalSubmit(); // Tự động lưu đơn khi nhận được tiền
+            handleFinalSubmit(); // Tự động lưu đơn vào MongoDB Atlas
           }
         } catch (err) {
-          console.error("Lỗi kiểm tra thanh toán:", err);
+          console.error("Lỗi xác thực trên Render:", err);
         }
       }, 5000);
     }
@@ -123,7 +123,7 @@ export default function CheckoutPage() {
     return () => clearInterval(interval);
   }, [isWaitingPayment, paymentConfirmed, orderMemo, totalAmount]);
 
-  // 4. CHỈ ĐẶT LỆNH RETURN NULL SAU KHI ĐÃ KHAI BÁO HẾT HOOKS (Sửa lỗi image_7f612d)
+  // --- QUAN TRỌNG: CHỈ RETURN NULL SAU KHI ĐÃ KHAI BÁO HẾT HOOKS ---
   if (!hydrated) return null;
 
   async function onSubmit(e: React.FormEvent) {
@@ -131,7 +131,7 @@ export default function CheckoutPage() {
     setError(null);
     
     if (items.length === 0) return setError("Túi quà của bạn đang trống.");
-    if (!name.trim() || !addr.trim() || !phone.trim()) return setError("Vui lòng điền đủ thông tin giao quà.");
+    if (!name.trim() || !addr.trim() || !phone.trim()) return setError("Vui lòng điền đủ thông tin.");
 
     if (pm === "banking" && !paymentConfirmed) {
       setIsWaitingPayment(true);
@@ -141,7 +141,7 @@ export default function CheckoutPage() {
     handleFinalSubmit();
   }
 
-  // --- GIAO DIỆN THÀNH CÔNG (Giữ nguyên code UI cũ) ---
+  // --- GIAO DIỆN THÀNH CÔNG ---
   if (result) {
     return (
       <main className="container mx-auto px-4 py-20 text-center max-w-2xl">
@@ -151,7 +151,7 @@ export default function CheckoutPage() {
             <Gift size={48} className="animate-bounce" />
           </div>
           <h2 className="text-3xl font-bold mb-2 uppercase italic text-red-600">Đặt hàng thành công!</h2>
-          <p className="text-slate-500 mb-8">Cảm ơn <b>{result.customerName}</b>, Keddy Pet đã tiếp nhận đơn hàng Noel của bạn. 🎄</p>
+          <p className="text-slate-500 mb-8">Cảm ơn <b>{result.customerName}</b>, đơn hàng Noel của bạn đã được tiếp nhận. 🎄</p>
           <div className="bg-slate-50 p-6 rounded-2xl text-left mb-8 space-y-2 border border-red-100">
             <p className="flex justify-between text-sm"><span>Mã đơn hàng:</span> <b className="font-mono text-red-600">{result.id}</b></p>
             <p className="flex justify-between text-sm"><span>Tổng thanh toán:</span> <b className="text-[#c41e3a] font-bold">{formatVND(result.total)}</b></p>
@@ -197,7 +197,7 @@ export default function CheckoutPage() {
                 <div className="relative col-span-2">
                   <MapPin className="absolute left-4 top-6 text-red-200" size={18} />
                   <textarea className="w-full pl-12 pr-4 py-4 bg-red-50/30 border-none rounded-2xl focus:ring-2 focus:ring-red-500 outline-none transition-all min-h-[100px] text-slate-900" 
-                    value={addr} onChange={(e) => setAddr(e.target.value)} placeholder="Địa chỉ giao hàng (Số nhà, tên đường...) *" required />
+                    value={addr} onChange={(e) => setAddr(e.target.value)} placeholder="Địa chỉ giao hàng *" required />
                 </div>
               </div>
             </section>
@@ -223,28 +223,20 @@ export default function CheckoutPage() {
 
               {pm === "banking" && (
                 <div className="bg-red-50/50 p-6 rounded-[30px] border-2 border-dashed border-red-200 animate-in fade-in zoom-in duration-300">
-                  <div className="flex flex-col md:flex-row items-center gap-8">
+                  <div className="flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
                     <div className="relative group bg-white p-3 rounded-2xl shadow-md border-2 border-red-100">
-                      <img src={qrUrl} alt="Mã QR Noel" className={`w-44 h-44 object-contain transition-opacity ${isWaitingPayment ? 'opacity-40' : 'opacity-100'}`} />
-                      {isWaitingPayment && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Loader2 className="animate-spin text-red-600" size={40} />
-                        </div>
-                      )}
+                      <img src={qrUrl} alt="Mã QR" className={`w-44 h-44 object-contain transition-opacity ${isWaitingPayment ? 'opacity-40' : 'opacity-100'}`} />
+                      {isWaitingPayment && <Loader2 className="absolute inset-0 m-auto animate-spin text-red-600" size={40} />}
                     </div>
-                    <div className="flex-1 text-center md:text-left space-y-2">
-                      <div className="flex items-center gap-2 justify-center md:justify-start text-red-700 font-black uppercase text-[10px] tracking-[0.2em]">
+                    <div className="flex-1 space-y-2">
+                      <div className="text-red-700 font-black uppercase text-[10px] tracking-widest flex items-center gap-2 justify-center md:justify-start">
                         <Snowflake size={16} className="text-blue-300 animate-spin-slow" /> Quét mã thanh toán Noel
                       </div>
-                      <div className="p-3 bg-white rounded-xl border border-red-200 inline-block md:block">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">Nội dung:</p>
+                      <div className="p-3 bg-white rounded-xl border border-red-200">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">Nội dung bắt buộc:</p>
                         <p className="text-xl font-black text-red-600 tracking-widest">{orderMemo}</p>
                       </div>
-                      {isWaitingPayment && (
-                        <p className="text-xs font-bold text-blue-600 animate-pulse mt-2 text-center md:text-left">
-                          ● Đang đợi tiền về cổng kết nối...
-                        </p>
-                      )}
+                      {isWaitingPayment && <p className="text-xs font-bold text-blue-600 animate-pulse">● Đang đợi tiền về server Render...</p>}
                     </div>
                   </div>
                 </div>
@@ -254,7 +246,7 @@ export default function CheckoutPage() {
 
           <aside className="lg:col-span-1">
             <div className="bg-[#C41E3A] text-white p-8 rounded-[40px] shadow-2xl sticky top-6 border-4 border-white/20">
-              <h2 className="text-lg font-black mb-6 uppercase tracking-widest border-b border-white/20 pb-4 italic flex items-center gap-2">
+              <h2 className="text-lg font-black mb-6 uppercase tracking-widest border-b border-white/20 pb-4 italic flex items-center justify-center gap-2">
                  <Gift size={20} /> Túi Quà Noel
               </h2>
               <div className="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar mb-6 space-y-5">
@@ -264,7 +256,7 @@ export default function CheckoutPage() {
                       <img src={it.image || "/placeholder.svg"} className="w-full h-full object-cover" alt={it.title} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold truncate uppercase">{it.title || it.name}</p>
+                      <p className="text-xs font-bold truncate uppercase text-white">{it.title || it.name}</p>
                       <div className="flex justify-between items-center mt-1">
                           <p className="text-[10px] text-white/70 italic">SL: {it.quantity}</p>
                           <p className="text-sm font-black text-yellow-300">{formatVND(it.price * it.quantity)}</p>
@@ -273,24 +265,13 @@ export default function CheckoutPage() {
                   </div>
                 ))}
               </div>
-              
-              <div className="space-y-4 border-t border-white/20 pt-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold uppercase text-white/60">Tổng cộng</span>
-                  <span className="text-3xl font-black text-yellow-300 drop-shadow-lg">
-                    {formatVND(totalAmount)}
-                  </span>
-                </div>
+              <div className="flex justify-between items-center border-t border-white/20 pt-6">
+                <span className="text-[10px] font-bold uppercase text-white/60">Tổng cộng</span>
+                <span className="text-3xl font-black text-yellow-300 drop-shadow-lg">{formatVND(totalAmount)}</span>
               </div>
-
-              <button 
-                type="submit"
-                disabled={submitting}
-                className="w-full py-5 bg-green-700 hover:bg-green-600 text-white font-bold rounded-[20px] mt-10 transition-all active:scale-95 shadow-xl uppercase tracking-[0.1em] flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {submitting ? <Loader2 className="animate-spin" /> : isWaitingPayment ? "Đang quét mã..." : "Xác nhận đơn hàng 🎅"}
+              <button type="submit" disabled={submitting} className="w-full py-5 bg-green-700 hover:bg-green-600 text-white font-bold rounded-[20px] mt-10 transition-all active:scale-95 shadow-xl uppercase tracking-widest disabled:opacity-50">
+                {submitting ? <Loader2 className="animate-spin mx-auto" /> : isWaitingPayment ? "Đang quét mã..." : "Xác nhận đơn hàng 🎅"}
               </button>
-              
               {error && <p className="mt-4 text-[10px] bg-white text-red-600 p-2 rounded-lg font-bold text-center">{error}</p>}
             </div>
           </aside>
