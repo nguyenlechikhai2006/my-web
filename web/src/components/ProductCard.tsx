@@ -4,11 +4,12 @@ import Link from "next/link";
 import type { Product } from "@/types/product";
 import { formatVND } from "@/lib/format";
 import AddToCartButton from "@/features/cart/AddToCartButton";
-import { Settings2, Snowflake } from "lucide-react"; // Thêm icon bông tuyết
+import { Settings2, Snowflake } from "lucide-react"; 
 
 export type ProductCardProps = { product: Product };
 
 export default function ProductCard({ product }: ProductCardProps) {
+  // GIỮ NGUYÊN DESTRUCTURING CŨ
   const { title, price, originalPrice, slug, images, stock, brand, rating, _id } = product;
   
   const image = (images && images.length > 0) ? images[0] : "https://via.placeholder.com/512";
@@ -16,13 +17,18 @@ export default function ProductCard({ product }: ProductCardProps) {
   const isDeal = originalPrice && originalPrice > price;
   const isAdmin = true; 
 
+  // BỔ SUNG: Tạo một object chuẩn để AddToCartButton và Context luôn đọc được ID
+  const normalizedProduct = {
+    ...product,
+    id: _id, // Đảm bảo luôn có id để context findIndex chính xác
+    name: title, // Đồng bộ title thành name nếu context dùng name
+    image: image
+  };
+
   return (
-    /* Đổi viền thành đỏ nhạt và thêm hiệu ứng shadow đỏ khi hover */
     <div className="border-2 border-red-50 rounded-xl overflow-hidden bg-white hover:shadow-[0_0_15px_rgba(196,30,58,0.2)] transition-all duration-300 relative group">
       
-      
-
-      {/* NHÃN GIÁNG SINH (Thay cho nhãn Deal đơn điệu) */}
+      {/* NHÃN GIÁNG SINH */}
       {isDeal && (
         <div className="absolute -left-10 top-5 -rotate-45 bg-red-600 text-white text-[10px] font-bold py-1 px-10 z-20 shadow-sm uppercase tracking-wider">
           Gift 🎁
@@ -58,7 +64,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           </h3>
           
           <div className="mt-2 flex items-center gap-2">
-            {/* Giá màu đỏ Noel rực rỡ */}
             <p className="font-black text-[#C41E3A] text-base">{formatVND(price)}</p>
             {isDeal && (
               <p className="text-xs text-gray-400 line-through decoration-red-400">
@@ -75,8 +80,8 @@ export default function ProductCard({ product }: ProductCardProps) {
       </Link>
 
       <div className="px-3 pb-3">
-        {/* Bạn có thể vào file AddToCartButton để đổi màu sang xanh lá (Green-600) cho hợp Noel */}
-        <AddToCartButton product={product} disabled={outOfStock} />
+        {/* SỬA: Truyền normalizedProduct thay vì product gốc */}
+        <AddToCartButton product={normalizedProduct} disabled={outOfStock} />
       </div>
     </div>
   );

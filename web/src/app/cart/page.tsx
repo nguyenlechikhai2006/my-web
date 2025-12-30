@@ -41,12 +41,17 @@ export default function CartPage() {
       
       <div className="flex flex-col gap-6">
         {state.items.map((item: any, index: number) => {
-          // Đảm bảo lấy đúng ID cho dù key là 'id' hay 'productId'
-          const itemId = item.id || item.productId || item._id;
+          // CHỈNH SỬA: Sử dụng itemId đồng nhất với logic đã sửa trong cart-context
+          const itemId = item.id || item.productId;
 
           return (
-            <div key={`${itemId}-${index}`} className="flex gap-6 p-5 bg-white rounded-3xl border-2 border-red-50 items-center shadow-sm">
-              <img src={item.image} alt={item.title || item.name} className="w-24 h-24 object-cover rounded-2xl border border-red-100" />
+            // SỬA KEY: Sử dụng itemId làm key chính để React tracking chuẩn xác hơn index
+            <div key={itemId} className="flex gap-6 p-5 bg-white rounded-3xl border-2 border-red-50 items-center shadow-sm">
+              <img 
+                src={item.image} 
+                alt={item.title || item.name} 
+                className="w-24 h-24 object-cover rounded-2xl border border-red-100" 
+              />
               
               <div className="flex-1">
                 <h3 className="font-bold text-lg text-gray-900 uppercase tracking-tight">
@@ -55,21 +60,24 @@ export default function CartPage() {
                 <p className="text-xs text-gray-500 font-medium mt-1">
                   {item.selectedFlavor && `Hương vị: ${item.selectedFlavor}`} 
                   {item.selectedSize && ` | Kích thước: ${item.selectedSize}`}
+                  {/* Hiển thị thêm Brand nếu có để giống thiết kế cũ */}
+                  {item.brand && ` | ${item.brand}`}
                 </p>
                 <p className="text-[#C41E3A] font-black text-xl mt-2">{formatVND(item.price)}</p>
               </div>
               
-              {/* Bộ tăng giảm */}
+              {/* Bộ tăng giảm số lượng */}
               <div className="flex items-center gap-3 bg-red-50/50 p-2 rounded-2xl border-2 border-red-100">
                 <button 
-                  onClick={() => updateQuantity(itemId, Math.max(0, (item.quantity || 0) - 1))} 
+                  // SỬA: Đảm bảo truyền đúng itemId đã trích xuất ở trên
+                  onClick={() => updateQuantity(itemId, Math.max(1, (Number(item.quantity) || 0) - 1))} 
                   className="w-9 h-9 flex items-center justify-center hover:bg-white rounded-xl transition shadow-sm bg-white/50"
                 >
                   <Minus size={16} />
                 </button>
                 <span className="font-black text-lg w-6 text-center">{item.quantity || 0}</span>
                 <button 
-                  onClick={() => updateQuantity(itemId, (item.quantity || 0) + 1)} 
+                  onClick={() => updateQuantity(itemId, (Number(item.quantity) || 0) + 1)} 
                   className="w-9 h-9 flex items-center justify-center hover:bg-white rounded-xl transition shadow-sm bg-white/50"
                 >
                   <Plus size={16} />

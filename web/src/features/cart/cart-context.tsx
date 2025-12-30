@@ -7,22 +7,34 @@ const LS_KEY = "keddy:cart";
 function reducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "ADD": {
-      // SỬA: Tìm theo id (nếu có) hoặc productId để phân biệt được các loại size/vị từ trang Detail
-      const idx = state.items.findIndex((it) => 
-        (it.id === action.payload.id) || (it.productId === action.payload.productId && !it.id)
-      );
+      // CẢI TIẾN: Sử dụng một định danh duy nhất (ưu tiên id, sau đó đến productId)
+      const newItemId = action.payload.id || action.payload.productId;
+      
+      const idx = state.items.findIndex((it) => {
+        const currentItemId = it.id || it.productId;
+        return currentItemId === newItemId;
+      });
       
       if (idx >= 0) {
         const next = [...state.items];
         const cur = next[idx];
-        next[idx] = { ...cur, quantity: Number(cur.quantity) + Number(action.payload.quantity) };
+        // Đảm bảo cộng dồn số lượng chính xác
+        next[idx] = { 
+          ...cur, 
+          quantity: Number(cur.quantity || 0) + Number(action.payload.quantity || 1) 
+        };
         return { items: next };
       }
-      return { items: [...state.items, action.payload] };
+      
+      // Nếu là sản phẩm mới, đảm bảo có quantity tối thiểu là 1
+      const itemToAdd = { 
+        ...action.payload, 
+        quantity: Number(action.payload.quantity || 1) 
+      };
+      return { items: [...state.items, itemToAdd] };
     }
 
     case "REMOVE":
-      // SỬA: Lọc theo id để xóa chính xác sản phẩm cụ thể
       return { 
         items: state.items.filter((it) => (it.id || it.productId) !== action.payload.productId) 
       };
@@ -30,7 +42,6 @@ function reducer(state: CartState, action: CartAction): CartState {
     case "SET_QTY":
       return {
         items: state.items.map((it) =>
-          // SỬA: Kiểm tra khớp id hoặc productId để tăng giảm đúng dòng
           (it.id || it.productId) === action.payload.productId
             ? { ...it, quantity: Math.max(1, Number(action.payload.quantity)) }
             : it
@@ -69,9 +80,12 @@ export default function CartProvider({ children }: { children: React.ReactNode }
   const [hydrated, setHydrated] = useState(false);
   const [state, dispatch] = useReducer(reducer, undefined, loadInitial);
 
+  // Chỉ lưu vào localStorage sau khi đã Hydrated để tránh ghi đè data trống lên data cũ
   useEffect(() => {
-    window.localStorage.setItem(LS_KEY, JSON.stringify(state));
-  }, [state]);
+    if (hydrated) {
+      window.localStorage.setItem(LS_KEY, JSON.stringify(state));
+    }
+  }, [state, hydrated]);
 
   useEffect(() => setHydrated(true), []);
 
@@ -87,7 +101,6 @@ export default function CartProvider({ children }: { children: React.ReactNode }
 
   const addItem = (item: any) => dispatch({ type: "ADD", payload: item });
   
-  // SỬA: Truyền id vào đây để khớp với logic xử lý ở trên
   const removeItem = (id: string) => dispatch({ type: "REMOVE", payload: { productId: id } });
   
   const updateQuantity = (id: string, quantity: number) => 

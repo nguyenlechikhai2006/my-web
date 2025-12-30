@@ -31,10 +31,21 @@ export default function AddToCartButton({
                 e.preventDefault();
                 e.stopPropagation(); // Ngăn việc nhấn vào card sản phẩm
                 
-                // Thực hiện thêm sản phẩm vào giỏ
-                addItem(productToCartItem(product, 1));
+                // CHỈNH SỬA QUAN TRỌNG: Đảm bảo product luôn có ID trước khi convert
+                // Nếu API trả về _id, chúng ta gán nó vào id để productToCartItem làm việc chính xác
+                const productWithId = {
+                    ...product,
+                    id: product._id || product._id,
+                    productId: product._id || product._id
+                };
+
+                // Thực hiện thêm sản phẩm vào giỏ với object đã chuẩn hóa
+                const cartItem = productToCartItem(productWithId, 1);
                 
-                console.log("Đã thêm sản phẩm:", product.title);
+                // Log để kiểm tra trong Console (F12)
+                console.log("Adding to cart:", cartItem);
+                
+                addItem(cartItem);
             }}
             className={`${base} ${width} ${className} bg-white text-black font-medium`}
         >
