@@ -18,8 +18,10 @@ const MY_BANK = {
   ACCOUNT_NAME: "Nguyen Le Chi Khai",
 };
 
-// Đã loại bỏ momo khỏi type
 type PM = "cod" | "banking";
+
+// Ưu tiên lấy URL từ biến môi trường, mặc định là cổng 4000
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -37,6 +39,7 @@ export default function CheckoutPage() {
   const [isWaitingPayment, setIsWaitingPayment] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
 
+  // 1. KHAI BÁO CÁC HOOKS TÍNH TOÁN TRÊN CÙNG
   const orderMemo = useMemo(() => {
     return `KEDDY${Math.floor(1000 + Math.random() * 9000)}`;
   }, []);
@@ -50,6 +53,7 @@ export default function CheckoutPage() {
     return `https://img.vietqr.io/image/${MY_BANK.BANK_ID}-${MY_BANK.ACCOUNT_NO}-compact2.png?amount=${totalAmount}&addInfo=${description}&accountName=${encodeURIComponent(MY_BANK.ACCOUNT_NAME)}`;
   }, [totalAmount, orderMemo]);
 
+  // 2. LOGIC LƯU ĐƠN HÀNG (SỬ DỤNG APIFETCH ĐỂ ĐỒNG BỘ VỚI BACKEND)
   const handleFinalSubmit = async () => {
     setSubmitting(true);
     try {
@@ -93,20 +97,22 @@ export default function CheckoutPage() {
     }
   };
 
+  // 3. LOGIC KIỂM TRA THANH TOÁN (GỌI ĐẾN CỔNG 4000 HOẶC LINK RENDER)
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
     if (isWaitingPayment && !paymentConfirmed) {
       interval = setInterval(async () => {
         try {
-          const checkRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/payments/check-banking?memo=${orderMemo}&amount=${totalAmount}`);
+          // Sử dụng fetch trực tiếp đến Backend để đối soát
+          const checkRes = await fetch(`${BASE_URL}/api/v1/payments/check-banking?memo=${orderMemo}&amount=${totalAmount}`);
           const checkData = await checkRes.json();
 
           if (checkData.paid) {
             setPaymentConfirmed(true);
             setIsWaitingPayment(false);
             clearInterval(interval);
-            handleFinalSubmit();
+            handleFinalSubmit(); // Tự động lưu đơn khi nhận được tiền
           }
         } catch (err) {
           console.error("Lỗi kiểm tra thanh toán:", err);
@@ -117,6 +123,7 @@ export default function CheckoutPage() {
     return () => clearInterval(interval);
   }, [isWaitingPayment, paymentConfirmed, orderMemo, totalAmount]);
 
+  // 4. CHỈ ĐẶT LỆNH RETURN NULL SAU KHI ĐÃ KHAI BÁO HẾT HOOKS (Sửa lỗi image_7f612d)
   if (!hydrated) return null;
 
   async function onSubmit(e: React.FormEvent) {
@@ -134,6 +141,7 @@ export default function CheckoutPage() {
     handleFinalSubmit();
   }
 
+  // --- GIAO DIỆN THÀNH CÔNG (Giữ nguyên code UI cũ) ---
   if (result) {
     return (
       <main className="container mx-auto px-4 py-20 text-center max-w-2xl">
@@ -199,7 +207,6 @@ export default function CheckoutPage() {
                 <CreditCard className="text-green-700" /> 2. Hình thức thanh toán
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
-                {/* Chỉ hiển thị COD và Banking */}
                 {(["cod", "banking"] as const).map((opt) => (
                   <label key={opt} className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 cursor-pointer transition-all ${pm === opt ? "border-red-600 bg-red-50 text-red-600" : "border-slate-50 bg-slate-50 text-slate-400 hover:bg-red-50/50"}`}>
                     <input type="radio" className="hidden" name="pm" value={opt} checked={pm === opt} onChange={() => { setPM(opt); setIsWaitingPayment(false); }} />
@@ -233,6 +240,11 @@ export default function CheckoutPage() {
                         <p className="text-[10px] font-bold text-slate-400 uppercase">Nội dung:</p>
                         <p className="text-xl font-black text-red-600 tracking-widest">{orderMemo}</p>
                       </div>
+                      {isWaitingPayment && (
+                        <p className="text-xs font-bold text-blue-600 animate-pulse mt-2 text-center md:text-left">
+                          ● Đang đợi tiền về cổng kết nối...
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -276,7 +288,7 @@ export default function CheckoutPage() {
                 disabled={submitting}
                 className="w-full py-5 bg-green-700 hover:bg-green-600 text-white font-bold rounded-[20px] mt-10 transition-all active:scale-95 shadow-xl uppercase tracking-[0.1em] flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {submitting ? <Loader2 className="animate-spin" /> : <>Xác nhận đơn hàng 🎅</>}
+                {submitting ? <Loader2 className="animate-spin" /> : isWaitingPayment ? "Đang quét mã..." : "Xác nhận đơn hàng 🎅"}
               </button>
               
               {error && <p className="mt-4 text-[10px] bg-white text-red-600 p-2 rounded-lg font-bold text-center">{error}</p>}
