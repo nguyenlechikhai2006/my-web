@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/features/cart/cart-context"; 
 import { formatVND } from "@/lib/format";
-import { apiFetch } from "@/lib/api"; // 1. Import hàm apiFetch đã tạo ở Bước 1
+import { apiFetch } from "@/lib/api"; 
 import { 
   ShieldCheck, Truck, CreditCard, 
   MapPin, Phone, User, FileText, 
@@ -18,7 +18,8 @@ const MY_BANK = {
   ACCOUNT_NAME: "Nguyen Le Chi Khai",
 };
 
-type PM = "cod" | "banking" | "momo";
+// Đã loại bỏ momo khỏi type
+type PM = "cod" | "banking";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -49,13 +50,11 @@ export default function CheckoutPage() {
     return `https://img.vietqr.io/image/${MY_BANK.BANK_ID}-${MY_BANK.ACCOUNT_NO}-compact2.png?amount=${totalAmount}&addInfo=${description}&accountName=${encodeURIComponent(MY_BANK.ACCOUNT_NAME)}`;
   }, [totalAmount, orderMemo]);
 
-  // 2. CHỈNH SỬA LOGIC LƯU ĐƠN HÀNG
   const handleFinalSubmit = async () => {
     setSubmitting(true);
     try {
       const userEmail = localStorage.getItem("userEmail") || "guest@shoply.local";
       
-      // Sử dụng apiFetch để gửi đến /api/v1/orders
       const response = await apiFetch<{ success: boolean; data: any; message?: string }>("/orders", { 
         method: "POST",
         body: JSON.stringify({
@@ -68,7 +67,7 @@ export default function CheckoutPage() {
           status: pm === "banking" ? "confirmed" : "pending",
           note: note || "",
           items: items.map((it: any) => ({
-            productId: it.id || it.productId || it._id, // Đồng bộ ID với Backend
+            productId: it.id || it.productId || it._id, 
             name: it.title || it.name,
             price: it.price,
             quantity: it.quantity,
@@ -94,21 +93,12 @@ export default function CheckoutPage() {
     }
   };
 
-  // 3. CHỈNH SỬA LOGIC KIỂM TRA THANH TOÁN
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
     if (isWaitingPayment && !paymentConfirmed) {
       interval = setInterval(async () => {
         try {
-          // Sử dụng apiFetch để check banking
-          const data = await apiFetch<{ paid: boolean }>("/payments/check-banking", {
-            method: "GET",
-            // Lưu ý: apiFetch sẽ tự thêm BASE_URL, ta chỉ truyền path và query
-          });
-          
-          // Giả sử API check-banking nằm ngoài apiFetch hoặc cần URL đặc thù, 
-          // ta có thể dùng fetch thuần với BASE_URL
           const checkRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/payments/check-banking?memo=${orderMemo}&amount=${totalAmount}`);
           const checkData = await checkRes.json();
 
@@ -144,7 +134,6 @@ export default function CheckoutPage() {
     handleFinalSubmit();
   }
 
-  // --- GIAO DIỆN (Giữ nguyên các thành phần UI đẹp mắt của bạn) ---
   if (result) {
     return (
       <main className="container mx-auto px-4 py-20 text-center max-w-2xl">
@@ -169,7 +158,6 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-[#f8fbff] py-10 text-slate-900 relative overflow-hidden">
-      {/* (Phần UI form của bạn - Giữ nguyên không thay đổi) */}
       <div className="fixed inset-0 pointer-events-none z-0 opacity-20">
         {[...Array(10)].map((_, i) => (
           <Snowflake key={i} className="absolute text-blue-200 animate-pulse" style={{ left: `${Math.random()*100}%`, top: `${Math.random()*100}%`, animationDuration: `${Math.random()*3+2}s` }} />
@@ -210,17 +198,17 @@ export default function CheckoutPage() {
               <h2 className="text-xl font-bold mb-6 uppercase italic flex items-center gap-3 text-green-700">
                 <CreditCard className="text-green-700" /> 2. Hình thức thanh toán
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
-                {(["cod", "banking", "momo"] as const).map((opt) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
+                {/* Chỉ hiển thị COD và Banking */}
+                {(["cod", "banking"] as const).map((opt) => (
                   <label key={opt} className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 cursor-pointer transition-all ${pm === opt ? "border-red-600 bg-red-50 text-red-600" : "border-slate-50 bg-slate-50 text-slate-400 hover:bg-red-50/50"}`}>
                     <input type="radio" className="hidden" name="pm" value={opt} checked={pm === opt} onChange={() => { setPM(opt); setIsWaitingPayment(false); }} />
                     <div className="mb-2">
                       {opt === "cod" && <Truck size={20} />}
                       {opt === "banking" && <QrCode size={20} />}
-                      {opt === "momo" && <span className="font-bold text-[10px]">MoMo</span>}
                     </div>
                     <span className="text-xs font-bold uppercase tracking-tighter">
-                      {opt === "cod" ? "Tiền mặt (COD)" : opt === "banking" ? "Chuyển khoản" : "Ví MoMo"}
+                      {opt === "cod" ? "Tiền mặt (COD)" : "Chuyển khoản"}
                     </span>
                   </label>
                 ))}
